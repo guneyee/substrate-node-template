@@ -1,1 +1,67 @@
 
+//Clone the repository to your local machine using Git.//
+ git clone https://github.com/your-username/substrate-ink-smart-contract-tutorial.git
+ cd substrate-ink-smart-contract-tutorial
+
+//Set up the basic project structure and files for your smart contract.//
+
+mkdir flipper
+cd flipper
+cargo contract new flipper
+
+//Edit the generated lib.rs file in the flipper folder to write the smart contract code
+
+use ink_lang::contract;
+
+#[contract]
+mod flipper {
+    #[ink(storage)]
+    pub struct Flipper {
+        value: bool,
+    }
+
+    impl Flipper {
+        #[ink(constructor)]
+        pub fn new(init_value: bool) -> Self {
+            Self { value: init_value }
+        }
+
+        #[ink(message)]
+        pub fn get(&self) -> bool {
+            self.value
+        }
+
+        #[ink(message)]
+        pub fn flip(&mut self) {
+            self.value = !self.value;
+        }
+    }
+}
+
+
+//Build and test your smart contract.
+
+cargo +nightly contract build
+cargo +nightly test
+
+//Assuming you have a Substrate node running, deploy your contract.
+
+substrate-contracts-node --log info,runtime::contracts=debug 2>&1
+
+
+cd flipper
+cargo +nightly contract instantiate --constructor new --args "false" --suri //Alice --salt $(date +%s)
+
+//After deploying, you can interact with the contract.
+
+cargo +nightly contract call --contract $INSTANTIATED_CONTRACT_ADDRESS --message get --suri //Alice --dry-run
+cargo +nightly contract call --contract $INSTANTIATED_CONTRACT_ADDRESS --message flip --suri //Alice
+
+//Commit your changes and push them to your GitHub repository.
+git add .
+git commit -m "Initial smart contract code"
+git push origin main
+
+
+
+
